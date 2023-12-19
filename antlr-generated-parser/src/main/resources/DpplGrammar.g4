@@ -1,34 +1,38 @@
 grammar DpplGrammar;
 
 // Lexer rules
-LET         : 'let';
-RETURN      : 'return';
-IF          : 'if';
-ELSE        : 'else';
-TRUE        : 'true';
-FALSE       : 'false';
-FN          : 'fn';
-ASSIGN      : '=';
-PLUS        : '+';
-MINUS       : '-';
-BANG        : '!';
-ASTERISK    : '*';
-SLASH       : '/';
-LT          : '<';
-GT          : '>';
+LET                 : 'let';
+RETURN              : 'return';
+IF                  : 'if';
+ELSE                : 'else';
+TRUE                : 'true';
+FALSE               : 'false';
+FN                  : 'fn';
+ASSIGN              : '=';
+PLUS                : '+';
+MINUS               : '-';
+BANG                : '!';
+ASTERISK            : '*';
+SLASH               : '/';
+LT                  : '<';
+GT                  : '>';
+EQUAL               : '==';
+NOTEQUAL            : '!=';
+LE                  : '<=';
+GE                  : '>=';
 
-LPAREN      : '(';
-RPAREN      : ')';
-LBRACE      : '{';
-RBRACE      : '}';
-COMMA       : ',';
-SEMICOLON   : ';';
+LPAREN              : '(';
+RPAREN              : ')';
+LBRACE              : '{';
+RBRACE              : '}';
+COMMA               : ',';
+SEMICOLON           : ';';
 
-IDENT       : [a-zA-Z_][a-zA-Z_0-9]*;
-INT         : [0-9]+;
+IDENT               : [a-zA-Z_][a-zA-Z_0-9]*;
+INT                 : [0-9]+;
 
-WS          : [ \t\r\n]+ -> skip;
-COMMENT     : '#' ~[\r\n]* -> skip;
+WS                  : [ \t\r\n]+ -> skip;
+COMMENT             : '#' ~[\r\n]* -> skip;
 
 // Parser rules
 program             : statement*;
@@ -45,13 +49,13 @@ expressionStatement : expression SEMICOLON;
 
 expression          : equalityExpression;
 
-equalityExpression  : comparisonExpression (EQUALITY_OPERATOR comparisonExpression)*;
+equalityExpression  : comparisonExpression ((EQUAL | NOTEQUAL) comparisonExpression)*;
 
 comparisonExpression: additionExpression ((LT | GT | LE | GE) additionExpression)*;
 
-additionExpression  : multiplicationExpression (ADDITIVE_OPERATOR multiplicationExpression)*;
+additionExpression  : multiplicationExpression ((PLUS | MINUS) multiplicationExpression)*;
 
-multiplicationExpression: unaryExpression (MULTIPLICATIVE_OPERATOR unaryExpression)*;
+multiplicationExpression: unaryExpression ((ASTERISK | SLASH) unaryExpression)*;
 
 unaryExpression     : (BANG | MINUS) unaryExpression
                     | primaryExpression;
@@ -76,9 +80,3 @@ parameters          : IDENT (COMMA IDENT)*;
 callExpression      : IDENT LPAREN arguments? RPAREN;
 
 arguments           : expression (COMMA expression)*;
-
-EQUALITY_OPERATOR   : '==' | '!=';
-LE                  : '<=';  // Added
-GE                  : '>=';  // Added
-ADDITIVE_OPERATOR   : '+' | '-';
-MULTIPLICATIVE_OPERATOR : '*' | '/';

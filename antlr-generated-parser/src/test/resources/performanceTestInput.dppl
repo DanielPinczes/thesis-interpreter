@@ -1,21 +1,5 @@
-let factorial = fn(x) {
-       if (x == 0) {
-           return 1;
-       } else {
-           return x * factorial(x - 1);
-       }
-    };
 let result = factorial(5);
 let anotherVar = 10;
 let add = fn(a, b) { return a + b; };
 let sum = add(result, anotherVar);
-if (sum > 50) {
-   return true;
-}
-let array = [1, 2, 3, 4, 5];
-let mapResult = map(array, fn(x) { return x * 2; });
-let index = 0;
-while (index < len(array)) {
-   puts(array[index]);
-   index = index + 1;
-};
+var a = 5;
