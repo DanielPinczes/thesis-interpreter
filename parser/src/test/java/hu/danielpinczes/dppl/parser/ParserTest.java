@@ -10,11 +10,33 @@ import hu.danielpinczes.dppl.ast.statement.expression.IntegerLiteral;
 import hu.danielpinczes.dppl.lexer.Lexer;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class ParserTest {
+
+    @Test
+    public void testParserPerformance() throws IOException {
+
+        var input = "let result = factorial(5);\n" +
+                "let anotherVar = 10;\n" +
+                "let add = fn(a, b) { return a + b; };\n" +
+                "let sum = add(result, anotherVar);\n" +
+                "var a = 5;";
+
+        long startTime = System.nanoTime();
+
+
+        Lexer l = new Lexer(input);
+        Parser p = new Parser(l);
+        Program program = p.parseProgram();
+
+        long endTime = System.nanoTime();
+        long duration = (endTime - startTime);
+        System.out.println("Parser Duration: " + duration + " nanoseconds");
+    }
 
     @Test
     void testLetStatements() {
