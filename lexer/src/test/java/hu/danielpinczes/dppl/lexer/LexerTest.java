@@ -29,6 +29,7 @@ class LexerTest {
                 "" +
                 "10 == 10;" +
                 "10 != 9;" +
+                "let foo = \"bar\";" +
                 "";
 
         Token[] tests = {
@@ -104,6 +105,11 @@ class LexerTest {
                 new Token(TokenType.INT, "10"),
                 new Token(TokenType.NOT_EQ, "!="),
                 new Token(TokenType.INT, "9"),
+                new Token(TokenType.SEMICOLON, ";"),
+                new Token(TokenType.LET, "let"),
+                new Token(TokenType.IDENT, "foo"),
+                new Token(TokenType.ASSIGN, "="),
+                new Token(TokenType.STRING, "bar"),
                 new Token(TokenType.SEMICOLON, ";"),
                 new Token(TokenType.EOF, "")
         };

@@ -1,5 +1,6 @@
 package hu.danielpinczes.dppl.lexer;
 
+import hu.danielpinczes.dppl.lexer.automata.*;
 import hu.danielpinczes.dppl.lexer.token.Token;
 import hu.danielpinczes.dppl.lexer.token.TokenType;
 
@@ -57,6 +58,9 @@ public class Lexer {
             case ';':
                 token = new Token(TokenType.SEMICOLON, Character.toString(ch));
                 break;
+            case ':':
+                token = new Token(TokenType.COLON, Character.toString(ch));
+                break;
             case ',':
                 token = new Token(TokenType.COMMA, Character.toString(ch));
                 break;
@@ -72,14 +76,24 @@ public class Lexer {
             case ')':
                 token = new Token(TokenType.RPAREN, Character.toString(ch));
                 break;
+            case '"':
+                token = new Token(TokenType.STRING, readString());
+                break;
+            case '[':
+                token = new Token(TokenType.LBRACKET, Character.toString(ch));
+                break;
+            case ']':
+                token = new Token(TokenType.RBRACKET, Character.toString(ch));
+                break;
             case '\0':
                 token = new Token(TokenType.EOF, "");
                 break;
             default:
                 if (isLetter(ch)) {
-                    String literal = readIdentifier();
-                    token = new Token(Token.lookupIdent(literal), literal);
-                    return token; // Early return as readIdentifier advances the chars
+                    return readIdentifierUsingFSM();
+                    //                    String literal = readIdentifier();
+//                    token = new Token(Token.lookupIdent(literal), literal);
+//                    return token; // Early return as readIdentifier advances the chars
                 } else if (isDigit(ch)) {
                     token = new Token(TokenType.INT, readNumber());
                     return token; // Early return as readNumber advances the chars
@@ -117,6 +131,41 @@ public class Lexer {
         }
     }
 
+    private Token readIdentifierUsingFSM() {
+        int startPosition = position;
+        var initial = new State();
+        var identifierPart = new State(true);  // Ez az állapot végállapot is lehet.
+
+        // Betűk és aláhúzások hozzáadása az első állapothoz, csak a kezdeti karakterekhez
+        for (char c = 'a'; c <= 'z'; c++) {
+            initial = initial.addTransition(new Transition(String.valueOf(c), identifierPart));
+            initial = initial.addTransition(new Transition(String.valueOf(Character.toUpperCase(c)), identifierPart));
+        }
+        initial = initial.addTransition(new Transition("_", identifierPart));
+
+        // Betűk, számok és aláhúzások hozzáadása a további részekhez
+        for (char c = 'a'; c <= 'z'; c++) {
+            identifierPart = identifierPart.addTransition(new Transition(String.valueOf(c), identifierPart));
+            identifierPart = identifierPart.addTransition(new Transition(String.valueOf(Character.toUpperCase(c)), identifierPart));
+        }
+        for (char c = '0'; c <= '9'; c++) {
+            identifierPart = identifierPart.addTransition(new Transition(String.valueOf(c), identifierPart));
+        }
+        identifierPart = identifierPart.addTransition(new Transition("_", identifierPart));
+
+        var fsm = new FiniteStateMachine(initial);
+        while (isLetter(ch) || ch == '_' || isDigit(ch)) {
+            fsm = fsm.createNextState(Character.toString(ch));
+            readChar();
+            if (!fsm.isFinalState()) {
+                throw new IllegalStateException("Invalid identifier");
+            }
+        }
+        var literal = input.substring(startPosition, position);
+        return new Token(Token.lookupIdent(literal), literal);
+    }
+
+
     private String readIdentifier() {
         int startPosition = position;
         while (isLetter(ch)) {
@@ -130,6 +179,14 @@ public class Lexer {
         while (isDigit(ch)) {
             readChar();
         }
+        return input.substring(startPosition, position);
+    }
+
+    private String readString() {
+        int startPosition = position + 1;
+        do {
+            readChar();
+        } while (ch != '"' && ch != '\0');
         return input.substring(startPosition, position);
     }
 
