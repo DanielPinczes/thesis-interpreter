@@ -14,6 +14,8 @@
         <module>ast</module>
         <module>parser</module>
         <module>antlr-generated-parser</module>
+        <module>evaluator</module>
+        <module>object</module>
     </modules>
 
     <properties>
