@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-class HashKey {
+public class HashKey {
 
     private final ObjectType type;
     private final long value;

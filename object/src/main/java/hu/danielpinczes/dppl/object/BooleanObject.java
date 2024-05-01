@@ -5,26 +5,22 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-class StringObj implements Object {
+public class BooleanObject implements Object {
 
-    private final String value;
+    private final boolean value;
 
     @Override
     public ObjectType getType() {
-        return ObjectType.STRING_OBJ;
+        return ObjectType.BOOLEAN_OBJ;
     }
 
     @Override
     public String inspect() {
-        return value;
+        return String.valueOf(value);
     }
 
     @Override
     public HashKey hashKey() {
-        long h = 0;
-        for (char c : value.toCharArray()) {
-            h = 31 * h + c;
-        }
-        return new HashKey(getType(), h);
+        return new HashKey(getType(), value ? 1 : 0);
     }
 }

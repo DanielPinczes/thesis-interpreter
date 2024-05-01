@@ -1,19 +1,17 @@
 package hu.danielpinczes.dppl.object;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @Getter
-class Hash implements Object {
+@RequiredArgsConstructor
+public class HashObject implements Object {
 
     private final Map<HashKey, HashPair> pairs;
-
-    public Hash() {
-        this.pairs = new HashMap<>();
-    }
 
     @Override
     public ObjectType getType() {

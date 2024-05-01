@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-class ReturnValue implements Object {
+public class ReturnValue implements Object {
 
     private final Object value;
 

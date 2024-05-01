@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
@@ -32,13 +31,14 @@ public class Parser {
     private final Map<TokenType, PrefixParseFn> prefixParseFns;
     private final Map<TokenType, InfixParseFn> infixParseFns;
 
-    public Parser(Lexer lexer){
+    public Parser(Lexer lexer) {
         this.lexer = lexer;
         this.errors = new ArrayList<>();
         this.prefixParseFns = new HashMap<>();
         this.infixParseFns = new HashMap<>();
         prefixParseFns.put(TokenType.IDENT, this::parseIdentifier);
         prefixParseFns.put(TokenType.INT, this::parseIntegerLiteral);
+        prefixParseFns.put(TokenType.STRING, this::parseStringLiteral);
         prefixParseFns.put(TokenType.BANG, this::parsePrefixExpression);
         prefixParseFns.put(TokenType.MINUS, this::parsePrefixExpression);
         prefixParseFns.put(TokenType.TRUE, this::parseBoolean);
@@ -46,6 +46,8 @@ public class Parser {
         prefixParseFns.put(TokenType.LPAREN, this::parseGroupedExpression);
         prefixParseFns.put(TokenType.IF, this::parseIfExpression);
         prefixParseFns.put(TokenType.FUNCTION, this::parseFunctionLiteral);
+        prefixParseFns.put(TokenType.LBRACKET, this::parseArrayLiteral);
+        prefixParseFns.put(TokenType.LBRACE, this::parseHashLiteral);
 
         infixParseFns.put(TokenType.PLUS, this::parseInfixExpression);
         infixParseFns.put(TokenType.MINUS, this::parseInfixExpression);
@@ -55,6 +57,9 @@ public class Parser {
         infixParseFns.put(TokenType.NOT_EQ, this::parseInfixExpression);
         infixParseFns.put(TokenType.LT, this::parseInfixExpression);
         infixParseFns.put(TokenType.GT, this::parseInfixExpression);
+
+        infixParseFns.put(TokenType.LPAREN, this::parseCallExpression);
+        infixParseFns.put(TokenType.LBRACKET, this::parseIndexExpression);
 
         nextToken();
         nextToken();
@@ -379,4 +384,79 @@ public class Parser {
         return args;
     }
 
+
+    public Expression parseStringLiteral() {
+        return new StringLiteral(curToken, curToken.literal());
+    }
+
+    public Expression parseArrayLiteral() {
+        var elements = parseExpressions(TokenType.RBRACKET);
+        return new ArrayLiteral(curToken, elements);
+    }
+
+    private List<Expression> parseExpressions(TokenType until) {
+        List<Expression> elements = new ArrayList<>();
+        skipOpeningBracket();
+        while (!curToken.type().equals(until)) {
+            elements.add(parseExpression(Precedence.LOWEST));
+            if (curToken.type().equals(TokenType.COMMA)) {
+                skipComma();
+            }
+        }
+
+        skipClosingBracket();
+        return elements;
+    }
+
+    private void skipClosingBracket() {
+        advanceToken();
+    }
+
+    private void skipComma() {
+        advanceToken();
+    }
+
+    private void skipOpeningBracket() {
+        advanceToken();
+    }
+
+    private void advanceToken() {
+        curToken = lexer.nextToken();
+    }
+
+    public Expression parseHashLiteral() {
+        var hash = new HashLiteral(curToken, new HashMap<>());
+        while (!peekTokenIs(TokenType.RBRACE)) {
+            nextToken();
+            var key = parseExpression(Precedence.LOWEST);
+            if (!expectPeek(TokenType.COLON)) {
+                return null;  // Error handling: Expected a colon between key and value.
+            }
+            nextToken();
+            Expression value = parseExpression(Precedence.LOWEST);
+            hash.getPairs().put(key, value);
+            if (!peekTokenIs(TokenType.RBRACE) && !expectPeek(TokenType.COMMA)) {
+                return null;
+            }
+        }
+        if (!expectPeek(TokenType.RBRACE)) {
+            return null;  // Error handling: Expected a closing brace at the end.
+        }
+
+        return hash;
+    }
+
+    private boolean peekTokenIs(TokenType type) {
+        return peekToken.type() == type;
+    }
+
+    public Expression parseIndexExpression(Expression left) {
+        var firstToken = curToken;
+        nextToken();  // Move past the '[' to the index expression
+        var index = parseExpression(Precedence.LOWEST);  // Parse the expression inside the brackets
+        if (!expectPeek(TokenType.RBRACKET)) {
+            return null;  // Error handling: if the next token isn't ']', return null
+        }
+        return new IndexExpression(firstToken, left, index);  // Return the fully parsed index expression
+    }
 }

@@ -5,13 +5,13 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-class Boolean implements Object {
+public class IntegerObject implements Object {
 
-    private final boolean value;
+    private final long value;
 
     @Override
     public ObjectType getType() {
-        return ObjectType.BOOLEAN_OBJ;
+        return ObjectType.INTEGER_OBJ;
     }
 
     @Override
@@ -21,6 +21,6 @@ class Boolean implements Object {
 
     @Override
     public HashKey hashKey() {
-        return new HashKey(getType(), value ? 1 : 0);
+        return new HashKey(getType(), value);
     }
 }

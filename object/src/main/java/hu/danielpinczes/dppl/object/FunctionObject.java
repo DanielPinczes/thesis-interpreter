@@ -10,11 +10,11 @@ import java.util.stream.Collectors;
 
 @Getter
 @RequiredArgsConstructor
-class Function implements Object {
+public class FunctionObject implements Object {
 
     private final List<Identifier> parameters;
-    private final BlockStatement body;
     private final Environment env;
+    private final BlockStatement body;
 
     @Override
     public ObjectType getType() {

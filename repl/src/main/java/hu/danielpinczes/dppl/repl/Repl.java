@@ -1,7 +1,9 @@
 package hu.danielpinczes.dppl.repl;
 
 import hu.danielpinczes.dppl.ast.Program;
+import hu.danielpinczes.dppl.evaluator.Evaluator;
 import hu.danielpinczes.dppl.lexer.Lexer;
+import hu.danielpinczes.dppl.object.Environment;
 import hu.danielpinczes.dppl.parser.Parser;
 
 import java.io.BufferedReader;
@@ -14,9 +16,17 @@ public class Repl {
 
     private static final String PROMPT = ">> ";
 
+    private static final String LOGO = ",------.  ,------. ,------. ,--.    \n" +
+            "|  .-.  \\ |  .--. '|  .--. '|  |    \n" +
+            "|  |  \\  :|  '--' ||  '--' ||  |    \n" +
+            "|  '--'  /|  | --' |  | --' |  '--. \n" +
+            "`-------' `--'     `--'     `-----' ";
+
+
     public static void start() {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         PrintStream out = System.out;
+        Environment env = new Environment();
 
         while (true) {
             out.print(PROMPT);
@@ -24,29 +34,34 @@ public class Repl {
             String line;
             try {
                 line = reader.readLine();
-                if (line == null || line.equalsIgnoreCase("exit")) {
-                    break;
-                }
             } catch (IOException e) {
-                out.println("Failed to read input: " + e.getMessage());
+                return;
+            }
+
+            if (line == null || line.equalsIgnoreCase("exit")) {
+                return;
+            }
+
+            Lexer l = new Lexer(line);
+            Parser p = new Parser(l);
+            Program program = p.parseProgram();
+            Evaluator evaluator = new Evaluator();
+
+            if (!p.getErrors().isEmpty()) {
+                printParserErrors(out, p.getErrors());
                 continue;
             }
 
-            Lexer lexer = new Lexer(line);
-            Parser parser = new Parser(lexer);
-
-            Program program = parser.parseProgram();
-            if (!parser.getErrors().isEmpty()) {
-                printParserErrors(out, parser.getErrors());
-                continue;
+            var evaluated = evaluator.eval(program, env);
+            if (evaluated != null) {
+                out.println(evaluated.inspect());
             }
-
-            out.println(program.toString());
         }
     }
 
     private static void printParserErrors(PrintStream out, List<String> errors) {
-        out.println("Parsing error found!\n parser errors:");
+        out.println(LOGO);
+        out.println("Woops! We ran into some monkey business here!\n parser errors:");
         for (String msg : errors) {
             out.println("\t" + msg);
         }

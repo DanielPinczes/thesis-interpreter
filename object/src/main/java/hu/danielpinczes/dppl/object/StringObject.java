@@ -5,22 +5,26 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-class Integer implements Object {
+public class StringObject implements Object {
 
-    private final long value;
+    private final String value;
 
     @Override
     public ObjectType getType() {
-        return ObjectType.INTEGER_OBJ;
+        return ObjectType.STRING_OBJ;
     }
 
     @Override
     public String inspect() {
-        return String.valueOf(value);
+        return value;
     }
 
     @Override
     public HashKey hashKey() {
-        return new HashKey(getType(), value);
+        long h = 0;
+        for (char c : value.toCharArray()) {
+            h = 31 * h + c;
+        }
+        return new HashKey(getType(), h);
     }
 }

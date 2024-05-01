@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 @Getter
 @RequiredArgsConstructor
-class Array implements Object {
+public class ArrayObject implements Object {
 
     private final List<Object> elements;
 
