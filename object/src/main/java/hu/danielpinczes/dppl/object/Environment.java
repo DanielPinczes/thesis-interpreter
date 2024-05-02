@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Environment {
-    private Map<String, Object> store;
+    private Map<String, DpplObject> store;
     private Environment outer;
 
     public Environment() {
@@ -17,15 +17,15 @@ public class Environment {
         this.outer = outer;
     }
 
-    public Object get(String name) {
-        Object value = store.get(name);
+    public DpplObject get(String name) {
+        DpplObject value = store.get(name);
         if (value == null && outer != null) {
             return outer.get(name);
         }
         return value;
     }
 
-    public Object set(String name, Object value) {
+    public DpplObject set(String name, DpplObject value) {
         store.put(name, value);
         return value;
     }

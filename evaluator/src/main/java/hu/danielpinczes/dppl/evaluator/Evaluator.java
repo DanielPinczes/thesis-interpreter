@@ -1,7 +1,6 @@
 package hu.danielpinczes.dppl.evaluator;
 
 import hu.danielpinczes.dppl.ast.Expression;
-import hu.danielpinczes.dppl.ast.Node;
 import hu.danielpinczes.dppl.ast.Program;
 import hu.danielpinczes.dppl.ast.Statement;
 import hu.danielpinczes.dppl.ast.statement.BlockStatement;
@@ -10,7 +9,7 @@ import hu.danielpinczes.dppl.ast.statement.LetStatement;
 import hu.danielpinczes.dppl.ast.statement.ReturnStatement;
 import hu.danielpinczes.dppl.ast.statement.expression.*;
 import hu.danielpinczes.dppl.object.*;
-import hu.danielpinczes.dppl.object.Object;
+import hu.danielpinczes.dppl.object.DpplObject;
 
 import java.util.*;
 
@@ -20,7 +19,7 @@ public class Evaluator {
     private static final BooleanObject  FALSE = new BooleanObject(false);
     public static final NullObject NULL = new NullObject();
 
-    public Object eval(java.lang.Object node, Environment env) {
+    public DpplObject eval(java.lang.Object node, Environment env) {
         if (node instanceof Program) {
             return evalProgram((Program) node, env);
         } else if (node instanceof BlockStatement) {
@@ -30,8 +29,11 @@ public class Evaluator {
         } else if (node instanceof ReturnStatement) {
             return evalReturnStatement((ReturnStatement) node, env);
         } else if (node instanceof LetStatement) {
-            var val = evalLetStatement((LetStatement) node, env);
-            return val;
+            DpplObject val = eval(((LetStatement)node).getValue(), env);
+            if (isError(val)) {
+                return val;
+            }
+            env.set(((LetStatement)node).getName().getValue(), val);
         } else if (node instanceof IntegerLiteral) {
             return new IntegerObject(((IntegerLiteral) node).getValue());
         }
@@ -41,17 +43,17 @@ public class Evaluator {
         else if (node instanceof BooleanExpression) {
             return nativeBoolToBooleanObject(((BooleanExpression) node).isValue());
         } else if (node instanceof PrefixExpression) {
-            Object right = eval(((PrefixExpression) node).getRight(), env);
+            DpplObject right = eval(((PrefixExpression) node).getRight(), env);
             if (isError(right)) {
                 return right;
             }
             return evalPrefixExpression(((PrefixExpression) node).getOperator(), right);
         } else if (node instanceof InfixExpression) {
-            Object left = eval(((InfixExpression) node).getLeft(), env);
+            DpplObject left = eval(((InfixExpression) node).getLeft(), env);
             if (isError(left)) {
                 return left;
             }
-            Object right = eval(((InfixExpression) node).getRight(), env);
+            DpplObject right = eval(((InfixExpression) node).getRight(), env);
             if (isError(right)) {
                 return right;
             }
@@ -63,7 +65,7 @@ public class Evaluator {
         } else if (node instanceof FunctionLiteral) {
             return new FunctionObject(((FunctionLiteral) node).getParameters(), env, ((FunctionLiteral) node).getBody());
         } else if (node instanceof CallExpression) {
-            Object function = eval(((CallExpression) node).getFunction(), env);
+            DpplObject function = eval(((CallExpression) node).getFunction(), env);
             if (isError(function)) {
                 return function;
             }
@@ -79,11 +81,11 @@ public class Evaluator {
             }
             return new ArrayObject(elements);
         } else if (node instanceof IndexExpression) {
-            Object left = eval(((IndexExpression) node).getLeft(), env);
+            DpplObject left = eval(((IndexExpression) node).getLeft(), env);
             if (isError(left)) {
                 return left;
             }
-            Object index = eval(((IndexExpression) node).getIndex(), env);
+            DpplObject index = eval(((IndexExpression) node).getIndex(), env);
             if (isError(index)) {
                 return index;
             }
@@ -94,25 +96,21 @@ public class Evaluator {
         return null;
     }
 
-    private Object evalLetStatement(LetStatement node, Environment env) {
-        Object val = eval(node.getValue(), env);
-        if (isError(val)) {
-            return val;
-        }
-        env.set(node.getName().getValue(), val);
+    private DpplObject evalLetStatement(LetStatement node, Environment env) {
+
         return null;
     }
 
-    private Object evalReturnStatement(ReturnStatement node, Environment env) {
-        Object val = eval(node.getReturnValue(), env);
+    private DpplObject evalReturnStatement(ReturnStatement node, Environment env) {
+        DpplObject val = eval(node.getReturnValue(), env);
         if (isError(val)) {
             return val;
         }
         return new ReturnValue(val);
     }
 
-    private Object evalProgram(Program program, Environment env) {
-        Object result = null;
+    private DpplObject evalProgram(Program program, Environment env) {
+        DpplObject result = null;
         for (Statement statement : program.getStatements()) {
             result = eval(statement, env);
             if (result instanceof ReturnValue) {
@@ -125,8 +123,8 @@ public class Evaluator {
         return result;
     }
 
-    private Object evalBlockStatement(BlockStatement block, Environment env) {
-        Object result = null;
+    private DpplObject evalBlockStatement(BlockStatement block, Environment env) {
+        DpplObject result = null;
         for (Statement statement : block.getStatements()) {
             result = eval(statement, env);
             if (result instanceof ReturnValue || result instanceof ErrorObject) {
@@ -136,7 +134,7 @@ public class Evaluator {
         return result;
     }
 
-    private boolean isError(Object obj) {
+    private boolean isError(DpplObject obj) {
         return obj instanceof ErrorObject;
     }
 
@@ -146,31 +144,28 @@ public class Evaluator {
                 : new BooleanObject(false);
     }
 
-    private Object evalPrefixExpression(String operator, Object right) {
-        switch (operator) {
-            case "!":
-                return evalBangOperatorExpression(right);
-            case "-":
-                return evalMinusPrefixOperatorExpression(right);
-            default:
-                return newError("unknown operator: " + operator + right.getType());
-        }
+    private DpplObject evalPrefixExpression(String operator, DpplObject right) {
+        return switch (operator) {
+            case "!" -> evalBangOperatorExpression(right);
+            case "-" -> evalMinusPrefixOperatorExpression(right);
+            default -> newError("unknown operator: " + operator + right.getType());
+        };
     }
 
-    private Object evalBangOperatorExpression(Object right) {
+    private DpplObject evalBangOperatorExpression(DpplObject right) {
 
-        if (right.equals(TRUE)) {
+        if (right.inspect().equals(TRUE.inspect())) {
             return FALSE;
-        } else if (right == FALSE) {
+        } else if (right.inspect().equals(FALSE.inspect()) ) {
             return TRUE;
-        } else if (right == NULL) {
+        } else if (right.inspect().equals(NULL.inspect()) ) {
             return TRUE;
         } else {
             return FALSE;
         }
     }
 
-    private Object evalMinusPrefixOperatorExpression(Object right) {
+    private DpplObject evalMinusPrefixOperatorExpression(DpplObject right) {
         if (!(right instanceof IntegerObject)) {
             return newError("unknown operator: -" + right.getType());
         }
@@ -183,15 +178,15 @@ public class Evaluator {
         return new ErrorObject(message);
     }
 
-    private Object evalInfixExpression(String operator, Object left, Object right) {
+    private DpplObject evalInfixExpression(String operator, DpplObject left, DpplObject right) {
         if (left instanceof IntegerObject && right instanceof IntegerObject) {
             return evalIntegerInfixExpression(operator, (IntegerObject) left, (IntegerObject) right);
         } else if (left instanceof StringObject && right instanceof StringObject) {
             return evalStringInfixExpression(operator, (StringObject) left, (StringObject) right);
         } else if (operator.equals("==")) {
-            return nativeBoolToBooleanObject(left.equals(right));
+            return nativeBoolToBooleanObject(left.inspect().equals(right.inspect()));
         } else if (operator.equals("!=")) {
-            return nativeBoolToBooleanObject(!left.equals(right));
+            return nativeBoolToBooleanObject(!left.inspect().equals(right.inspect()));
         } else if (!left.getClass().equals(right.getClass())) {
             return newError("type mismatch: " + left.getType() + " " + operator + " " + right.getType());
         } else {
@@ -199,7 +194,7 @@ public class Evaluator {
         }
     }
 
-    private Object evalIntegerInfixExpression(String operator, IntegerObject leftVal, IntegerObject rightVal) {
+    private DpplObject evalIntegerInfixExpression(String operator, IntegerObject leftVal, IntegerObject rightVal) {
         return switch (operator) {
             case "+" -> new IntegerObject(leftVal.getValue() + rightVal.getValue());
             case "-" -> new IntegerObject(leftVal.getValue() - rightVal.getValue());
@@ -218,7 +213,7 @@ public class Evaluator {
         };
     }
 
-    private Object evalStringInfixExpression(String operator, StringObject left, StringObject right) {
+    private DpplObject evalStringInfixExpression(String operator, StringObject left, StringObject right) {
         if (operator.equals("+")) {
             return new StringObject(left.getValue() + right.getValue());
         } else {
@@ -226,43 +221,43 @@ public class Evaluator {
         }
     }
 
-    private Object evalIfExpression(IfExpression ie, Environment env) {
-        Object condition = eval(ie.getCondition(), env);
+    private DpplObject evalIfExpression(IfExpression ie, Environment env) {
+        DpplObject condition = eval(ie.getCondition(), env);
         if (isError(condition)) {
-            return condition;  // Return error immediately if condition evaluation fails.
+            return condition;
         }
 
         if (isTruthy(condition)) {
-            return eval(ie.getConsequence(), env);  // Evaluate the consequence block if condition is true.
+            return eval(ie.getConsequence(), env);
         } else if (ie.getAlternative() != null) {
-            return eval(ie.getAlternative(), env);  // Evaluate the alternative block if it exists and condition is false.
+            return eval(ie.getAlternative(), env);
         } else {
-            return NULL;  // Return NULL if there is no alternative block and condition is false.
+            return NULL;
         }
     }
 
-    private boolean isTruthy(Object obj) {
+    private boolean isTruthy(DpplObject obj) {
         if (obj instanceof BooleanObject) {
             return ((BooleanObject) obj).isValue();
         } else if (obj instanceof NullObject) {
             return false;
         } else {
-            return true;  // Consider non-null objects as true unless they are specifically false.
+            return true;
         }
     }
 
-    private Object evalIdentifier(Identifier node, Environment env) {
-        Object val = env.get(node.getValue());
+    private DpplObject evalIdentifier(Identifier node, Environment env) {
+        DpplObject val = env.get(node.getValue());
         if (val == null) {
             return newError("identifier not found: " + node.getValue());
         }
         return val;
     }
 
-    private List<Object> evalExpressions(List<Expression> exps, Environment env) {
-        var result = new ArrayList<Object>();
+    private List<DpplObject> evalExpressions(List<Expression> exps, Environment env) {
+        var result = new ArrayList<DpplObject>();
         for (Expression e : exps) {
-            Object evaluated = eval(e, env);
+            DpplObject evaluated = eval(e, env);
             if (isError(evaluated)) {
                 return List.of(evaluated);
             }
@@ -271,7 +266,7 @@ public class Evaluator {
         return result;
     }
 
-    private Object applyFunction(Object fn, List<Object> args) {
+    private DpplObject applyFunction(DpplObject fn, List<DpplObject> args) {
         if (fn instanceof FunctionObject) {
             FunctionObject function = (FunctionObject) fn;
             Environment extendedEnv = extendFunctionEnv(function, args);
@@ -284,7 +279,7 @@ public class Evaluator {
         }
     }
 
-    private Environment extendFunctionEnv(FunctionObject fn, List<Object> args) {
+    private Environment extendFunctionEnv(FunctionObject fn, List<DpplObject> args) {
         Environment env = new Environment(fn.getEnv());
         for (int i = 0; i < fn.getParameters().size(); i++) {
             Identifier param = fn.getParameters().get(i);
@@ -296,37 +291,37 @@ public class Evaluator {
         return env;
     }
 
-    private Object unwrapReturnValue(Object obj) {
+    private DpplObject unwrapReturnValue(DpplObject obj) {
         if (obj instanceof ReturnValue) {
             return ((ReturnValue) obj).getValue();
         }
         return obj;
     }
 
-    public Object evalIndexExpression(Object left, Object index) {
+    public DpplObject evalIndexExpression(DpplObject left, DpplObject index) {
         if (left instanceof ArrayObject && index instanceof IntegerObject) {
             return evalArrayIndexExpression(left, index);
         } else if (left instanceof HashObject) {
-            return evalHashIndexExpression(left, index);  // Assuming evalHashIndexExpression is implemented similarly
+            return evalHashIndexExpression(left, index);
         } else {
             return newError("index operator not supported: " + left.getType());
         }
     }
 
-    public Object evalArrayIndexExpression(Object array, Object index) {
+    public DpplObject evalArrayIndexExpression(DpplObject array, DpplObject index) {
         var arrayObject = (ArrayObject) array;
         var integerObject = (IntegerObject) index;
         int idx = (int) integerObject.getValue();
         int max = arrayObject.getElements().size() - 1;
 
         if (idx < 0 || idx > max) {
-            return NULL;  // Assuming NULL is a defined singleton for null-like behavior
+            return NULL;
         }
 
         return arrayObject.getElements().get(idx);
     }
 
-    public Object evalHashIndexExpression(Object hash, Object index) {
+    public DpplObject evalHashIndexExpression(DpplObject hash, DpplObject index) {
         if (!(hash instanceof HashObject)) {
             return newError("Expected a hash object but found: " + hash.getType());
         }
@@ -339,25 +334,25 @@ public class Evaluator {
 
         var value = hashObject.getPairs().get(hashKey.hashKey());
         if (value == null) {
-            return NULL;  // Assuming NULL is a predefined singleton representing a null value
+            return NULL;
         }
 
-        return (Object) value;
+        return (DpplObject) value;
     }
 
-    public Object evalHashLiteral(HashLiteral node, Environment env) {
+    public DpplObject evalHashLiteral(HashLiteral node, Environment env) {
         var pairs = new HashMap<HashKey, HashPair>();
         for (Map.Entry<Expression, Expression> entry : node.getPairs().entrySet()) {
             Expression keyNode = entry.getKey();
             Expression valueNode = entry.getValue();
-            Object key = eval(keyNode, env);
+            DpplObject key = eval(keyNode, env);
             if (isError(key)) {
                 return key;
             }
             if (!(key instanceof Hashable)) {
                 return newError("unusable as hash key: " + key.getType());
             }
-            Object value = eval(valueNode, env);
+            DpplObject value = eval(valueNode, env);
             if (isError(value)) {
                 return value;
             }

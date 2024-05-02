@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 @Getter
 @RequiredArgsConstructor
-public class FunctionObject implements Object {
+public class FunctionObject implements DpplObject {
 
     private final List<Identifier> parameters;
     private final Environment env;

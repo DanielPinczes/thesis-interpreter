@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public class BooleanObject implements Object {
+public class BooleanObject implements DpplObject, Hashable {
 
     private final boolean value;
 

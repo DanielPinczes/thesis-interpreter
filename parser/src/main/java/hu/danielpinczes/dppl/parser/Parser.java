@@ -113,14 +113,11 @@ public class Parser {
     }
 
     public Statement parseStatement() {
-        switch (curToken.type()) {
-            case LET:
-                return parseLetStatement();
-            case RETURN:
-                return parseReturnStatement();
-            default:
-                return parseExpressionStatement();
-        }
+        return switch (curToken.type()) {
+            case LET -> parseLetStatement();
+            case RETURN -> parseReturnStatement();
+            default -> parseExpressionStatement();
+        };
     }
 
     public LetStatement parseLetStatement() {
@@ -396,32 +393,25 @@ public class Parser {
 
     private List<Expression> parseExpressions(TokenType until) {
         List<Expression> elements = new ArrayList<>();
-        skipOpeningBracket();
-        while (!curToken.type().equals(until)) {
-            elements.add(parseExpression(Precedence.LOWEST));
-            if (curToken.type().equals(TokenType.COMMA)) {
-                skipComma();
-            }
+
+        if(peekTokenIs(until)){
+            nextToken();
+            return elements;
         }
 
-        skipClosingBracket();
+        nextToken();
+        elements.add(parseExpression(Precedence.LOWEST));
+
+        while (peekTokenIs(TokenType.COMMA)) {
+            nextToken();
+            nextToken();
+            elements.add(parseExpression(Precedence.LOWEST));
+        }
+
+        if(!expectPeek(until)){
+            return null;
+        }
         return elements;
-    }
-
-    private void skipClosingBracket() {
-        advanceToken();
-    }
-
-    private void skipComma() {
-        advanceToken();
-    }
-
-    private void skipOpeningBracket() {
-        advanceToken();
-    }
-
-    private void advanceToken() {
-        curToken = lexer.nextToken();
     }
 
     public Expression parseHashLiteral() {

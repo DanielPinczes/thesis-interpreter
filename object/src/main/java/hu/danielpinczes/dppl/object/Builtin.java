@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public class Builtin implements Object {
+public class Builtin implements DpplObject {
 
     private final BuiltinFunction fn;
 

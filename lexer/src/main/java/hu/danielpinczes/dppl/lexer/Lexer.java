@@ -90,10 +90,10 @@ public class Lexer {
                 break;
             default:
                 if (isLetter(ch)) {
-                    return readIdentifierUsingFSM();
-                    //                    String literal = readIdentifier();
-//                    token = new Token(Token.lookupIdent(literal), literal);
-//                    return token; // Early return as readIdentifier advances the chars
+//                    return readIdentifierUsingFSM();
+                                        String literal = readIdentifier();
+                    token = new Token(Token.lookupIdent(literal), literal);
+                    return token; // Early return as readIdentifier advances the chars
                 } else if (isDigit(ch)) {
                     token = new Token(TokenType.INT, readNumber());
                     return token; // Early return as readNumber advances the chars

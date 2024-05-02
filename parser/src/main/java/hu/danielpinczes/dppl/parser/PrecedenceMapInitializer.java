@@ -21,5 +21,6 @@ public class PrecedenceMapInitializer {
             .put(TokenType.SLASH, Precedence.PRODUCT)
             .put(TokenType.ASTERISK, Precedence.PRODUCT)
             .put(TokenType.LPAREN, Precedence.CALL)
+            .put(TokenType.LBRACKET, Precedence.INDEX)
             .build();
 }

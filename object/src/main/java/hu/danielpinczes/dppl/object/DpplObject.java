@@ -1,6 +1,6 @@
 package hu.danielpinczes.dppl.object;
 
-public interface Object {
+public interface DpplObject {
 
     ObjectType getType();
 

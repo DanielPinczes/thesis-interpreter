@@ -5,9 +5,9 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public class ReturnValue implements Object {
+public class ReturnValue implements DpplObject {
 
-    private final Object value;
+    private final DpplObject value;
 
     @Override
     public ObjectType getType() {

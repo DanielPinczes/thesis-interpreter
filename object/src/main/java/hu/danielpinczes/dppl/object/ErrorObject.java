@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public class ErrorObject implements Object {
+public class ErrorObject implements DpplObject {
 
     private final String message;
 

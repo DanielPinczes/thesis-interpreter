@@ -5,6 +5,6 @@ import java.util.List;
 @FunctionalInterface
 public interface BuiltinFunction {
 
-    Object apply(List<Object> args);
+    DpplObject apply(List<DpplObject> args);
 
 }

@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public class IntegerObject implements Object {
+public class IntegerObject implements DpplObject, Hashable {
 
     private final long value;
 

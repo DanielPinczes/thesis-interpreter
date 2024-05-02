@@ -3,9 +3,11 @@ package hu.danielpinczes.dppl.object;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Objects;
+
 @Getter
 @RequiredArgsConstructor
-public class StringObject implements Object {
+public class StringObject implements DpplObject, Hashable {
 
     private final String value;
 
@@ -19,7 +21,7 @@ public class StringObject implements Object {
         return value;
     }
 
-    @Override
+        @Override
     public HashKey hashKey() {
         long h = 0;
         for (char c : value.toCharArray()) {

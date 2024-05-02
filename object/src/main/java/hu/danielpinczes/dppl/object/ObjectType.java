@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-enum ObjectType {
+public enum ObjectType {
     NULL_OBJ("NULL"),
     ERROR_OBJ("ERROR"),
     INTEGER_OBJ("INTEGER"),

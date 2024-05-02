@@ -1,7 +1,7 @@
 package hu.danielpinczes.dppl.object;
 
 
-public class NullObject implements Object {
+public class NullObject implements DpplObject {
 
     @Override
     public ObjectType getType() {

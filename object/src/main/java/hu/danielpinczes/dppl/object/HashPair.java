@@ -7,6 +7,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class HashPair {
 
-    private final Object key;
-    private final Object value;
+    private final DpplObject key;
+    private final DpplObject value;
 }
