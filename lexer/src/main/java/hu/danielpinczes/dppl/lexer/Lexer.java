@@ -4,6 +4,8 @@ import hu.danielpinczes.dppl.lexer.automata.*;
 import hu.danielpinczes.dppl.lexer.token.Token;
 import hu.danielpinczes.dppl.lexer.token.TokenType;
 
+import java.util.regex.Pattern;
+
 public class Lexer {
     private final String input;
     private int position;
@@ -90,10 +92,10 @@ public class Lexer {
                 break;
             default:
                 if (isLetter(ch)) {
-//                    return readIdentifierUsingFSM();
-                                        String literal = readIdentifier();
-                    token = new Token(Token.lookupIdent(literal), literal);
-                    return token; // Early return as readIdentifier advances the chars
+                    return readIdentifierUsingFSM();
+//                                        String literal = readIdentifier();
+//                    token = new Token(Token.lookupIdent(literal), literal);
+//                    return token; // Early return as readIdentifier advances the chars
                 } else if (isDigit(ch)) {
                     token = new Token(TokenType.INT, readNumber());
                     return token; // Early return as readNumber advances the chars
@@ -108,7 +110,7 @@ public class Lexer {
     }
 
     private void skipWhitespace() {
-        while (ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r') {
+        while (Pattern.matches("\\s", Character.toString(ch))) {
             readChar();
         }
     }
@@ -191,10 +193,10 @@ public class Lexer {
     }
 
     private static boolean isLetter(char ch) {
-        return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch == '_';
+        return Pattern.matches("[a-zA-Z_]", Character.toString(ch));
     }
 
     private static boolean isDigit(char ch) {
-        return ch >= '0' && ch <= '9';
+        return Pattern.matches("\\d", Character.toString(ch));
     }
 }

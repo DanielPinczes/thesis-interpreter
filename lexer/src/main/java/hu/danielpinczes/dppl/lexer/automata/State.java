@@ -3,9 +3,6 @@ package hu.danielpinczes.dppl.lexer.automata;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * State in a finite state machine.
- */
 public class State {
 
     private final List<Transition> transitions;
