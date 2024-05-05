@@ -23,12 +23,6 @@
         </dependency>
         <dependency>
             <groupId>hu.danielpinczes.dppl</groupId>
-            <artifactId>object</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>hu.danielpinczes.dppl</groupId>
             <artifactId>evaluator</artifactId>
             <version>0.0.1-SNAPSHOT</version>
             <scope>compile</scope>

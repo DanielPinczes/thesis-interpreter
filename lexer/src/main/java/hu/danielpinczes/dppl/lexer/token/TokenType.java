@@ -39,7 +39,9 @@ public enum TokenType {
     FALSE("FALSE"),
     IF("IF"),
     ELSE("ELSE"),
-    RETURN("RETURN");
+    RETURN("RETURN"),
+    CLASS("class"),
+    ;
 
     private final String name;
 
@@ -51,5 +53,6 @@ public enum TokenType {
             .put("if", TokenType.IF)
             .put("else", TokenType.ELSE)
             .put("return", TokenType.RETURN)
+            .put("class", TokenType.CLASS)
             .build();
 }
