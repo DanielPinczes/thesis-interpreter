@@ -19,7 +19,8 @@ public class HashLiteralTest extends BaseTest {
                 4: 4,
                 true: 5,
 		        false: 6
-            }""";
+            }
+            """;
 
     @Test
     @Override

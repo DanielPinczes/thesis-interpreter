@@ -21,7 +21,8 @@ class EnclosingEnvironmentTest extends BaseTest {
               first + second + third;
             };
 
-            ourFunction(20) + first + second;""";
+            ourFunction(20) + first + second;
+            """;
 
     @Override
     @Test

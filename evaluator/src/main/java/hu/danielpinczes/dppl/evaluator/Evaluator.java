@@ -3,10 +3,7 @@ package hu.danielpinczes.dppl.evaluator;
 import hu.danielpinczes.dppl.ast.Expression;
 import hu.danielpinczes.dppl.ast.Program;
 import hu.danielpinczes.dppl.ast.Statement;
-import hu.danielpinczes.dppl.ast.statement.BlockStatement;
-import hu.danielpinczes.dppl.ast.statement.ExpressionStatement;
-import hu.danielpinczes.dppl.ast.statement.LetStatement;
-import hu.danielpinczes.dppl.ast.statement.ReturnStatement;
+import hu.danielpinczes.dppl.ast.statement.*;
 import hu.danielpinczes.dppl.ast.statement.expression.*;
 import hu.danielpinczes.dppl.object.*;
 import hu.danielpinczes.dppl.object.DpplObject;
@@ -34,7 +31,9 @@ public class Evaluator {
                 return val;
             }
             env.set(((LetStatement)node).getName().getValue(), val);
-        } else if (node instanceof IntegerLiteral) {
+        } else if(node instanceof WhileStatement){
+            return evalWhileStatement((WhileStatement) node, env);
+        }else if (node instanceof IntegerLiteral) {
             return new IntegerObject(((IntegerLiteral) node).getValue());
         }
         else if (node instanceof StringLiteral) {
@@ -96,9 +95,34 @@ public class Evaluator {
         return null;
     }
 
-    private DpplObject evalLetStatement(LetStatement node, Environment env) {
 
-        return null;
+    private DpplObject evalWhileStatement(WhileStatement stmt, Environment env) {
+        DpplObject result = NULL;
+
+        while (true) {
+            DpplObject condition = eval(stmt.getCondition(), env);
+            if (isError(condition)) {
+                return condition;
+            }
+
+            if (!isTruthy(condition)) {
+                break;
+            }
+
+            result = eval(stmt.getBody(), env);
+
+            // Ha visszatérési értékkel kilépünk a ciklusból
+            if (result instanceof ReturnValue) {
+                return result;
+            }
+
+            // Ha hiba történt a ciklus törzsének kiértékelése közben
+            if (isError(result)) {
+                return result;
+            }
+        }
+
+        return result;
     }
 
     private DpplObject evalReturnStatement(ReturnStatement node, Environment env) {

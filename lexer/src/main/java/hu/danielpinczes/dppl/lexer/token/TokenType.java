@@ -41,6 +41,7 @@ public enum TokenType {
     ELSE("ELSE"),
     RETURN("RETURN"),
     CLASS("class"),
+    WHILE("while"),
     ;
 
     private final String name;
@@ -54,5 +55,6 @@ public enum TokenType {
             .put("else", TokenType.ELSE)
             .put("return", TokenType.RETURN)
             .put("class", TokenType.CLASS)
+            .put("while", TokenType.WHILE)
             .build();
 }

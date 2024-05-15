@@ -3,10 +3,7 @@ package hu.danielpinczes.dppl.parser;
 import hu.danielpinczes.dppl.ast.Expression;
 import hu.danielpinczes.dppl.ast.Program;
 import hu.danielpinczes.dppl.ast.Statement;
-import hu.danielpinczes.dppl.ast.statement.BlockStatement;
-import hu.danielpinczes.dppl.ast.statement.ExpressionStatement;
-import hu.danielpinczes.dppl.ast.statement.LetStatement;
-import hu.danielpinczes.dppl.ast.statement.ReturnStatement;
+import hu.danielpinczes.dppl.ast.statement.*;
 import hu.danielpinczes.dppl.ast.statement.expression.*;
 import hu.danielpinczes.dppl.lexer.Lexer;
 import hu.danielpinczes.dppl.lexer.token.Token;
@@ -116,6 +113,7 @@ public class Parser {
         return switch (curToken.type()) {
             case LET -> parseLetStatement();
             case RETURN -> parseReturnStatement();
+            case WHILE -> parseWhileStatement();
             default -> parseExpressionStatement();
         };
     }
@@ -156,6 +154,29 @@ public class Parser {
         }
 
         return new ReturnStatement(token, returnValue);
+    }
+
+    public Statement parseWhileStatement() {
+        Token token = curToken;
+
+        if (!expectPeek(TokenType.LPAREN)) {
+            return null;
+        }
+
+        nextToken();
+        Expression condition = parseExpression(Precedence.LOWEST);
+
+        if (!expectPeek(TokenType.RPAREN)) {
+            return null;
+        }
+
+        if (!expectPeek(TokenType.LBRACE)) {
+            return null;
+        }
+
+        BlockStatement body = parseBlockStatement();
+
+        return new WhileStatement(token, condition, body);
     }
 
     public ExpressionStatement parseExpressionStatement() {
